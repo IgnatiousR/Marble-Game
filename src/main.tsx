@@ -4,14 +4,8 @@ import { Canvas } from "@react-three/fiber";
 import "./index.css";
 import Experience from "./Experience";
 import { KeyboardControls } from "@react-three/drei";
+import * as THREE from "three";
 
-// createRoot(document.getElementById('root')!).render(
-//   <StrictMode>
-//     <Canvas>
-//       <Experience />
-//     </Canvas>
-//   </StrictMode>
-// )
 const root = createRoot(document.querySelector("#root") as HTMLElement);
 
 root.render(
@@ -30,6 +24,10 @@ root.render(
       <Canvas
         shadows
         gl={{ antialias: true }}
+        onCreated={({ gl }) => {
+          gl.shadowMap.enabled = true;
+          gl.shadowMap.type = THREE.PCFSoftShadowMap;
+        }}
         camera={{
           fov: 45,
           near: 0.1,
