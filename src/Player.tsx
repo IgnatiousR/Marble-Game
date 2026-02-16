@@ -1,4 +1,4 @@
-import { RapierRigidBody, RigidBody } from "@react-three/rapier";
+import { useRapier, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import type { Vec3 } from "./types";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
@@ -10,14 +10,31 @@ type PlayerProps = {
 export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
   const rb = useRef<RapierRigidBody | null>(null);
   const [subscribeKeys, getKeys] = useKeyboardControls();
+  const { rapier, world } = useRapier();
+  const rapierWorld = world;
 
   const jump = () => {
-    // console.log("Yes, jump!");
-    rb.current?.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
+    console.log("Yes, jump!");
+    const origin = rb.current?.translation();
+    if (!origin) return;
+    origin.y -= 0.31;
+    const direction = { x: 0, y: -1, z: 0 };
+    const ray = new rapier.Ray(origin, direction);
+
+    const maxToi = 10; // how far downward to check
+    const solid = true; // stop at solid colliders
+
+    const hit = rapierWorld.castRay(ray, maxToi, solid);
+
+    // console.log(hit);
+    if (!hit) return;
+
+    if (hit.timeOfImpact < 0.15)
+      rb.current?.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
   };
 
   useEffect(() => {
-    subscribeKeys(
+    const unsubscribeJump = subscribeKeys(
       (state) => {
         return state.jump;
       },
@@ -25,6 +42,10 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
         if (value) jump();
       },
     );
+
+    return () => {
+      unsubscribeJump();
+    };
   }, [subscribeKeys]);
 
   useFrame((_state, delta) => {
