@@ -1,5 +1,9 @@
 import * as THREE from "three";
-import { CuboidCollider, RapierRigidBody, RigidBody } from "@react-three/rapier";
+import {
+  CuboidCollider,
+  RapierRigidBody,
+  RigidBody,
+} from "@react-three/rapier";
 import { useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
@@ -35,7 +39,9 @@ export function BlockStart({ position = [0, 0, 0] }: BlockStartProps) {
 
 export function BlockSpinner({ position = [0, 0, 0] }: BlockStartProps) {
   const obstacle = useRef<RapierRigidBody | null>(null);
-  const [speed] = useState(() => (Math.random() + 0.2) * (Math.random() < 0.5 ? -1 : 1));
+  const [speed] = useState(
+    () => (Math.random() + 0.2) * (Math.random() < 0.5 ? -1 : 1),
+  );
 
   useFrame((state) => {
     const time = state.clock.getElapsedTime();
@@ -262,7 +268,10 @@ function Bounds({ length = 1 }) {
 //   };
 // }
 
-export default function Level({ count = 5, types = [BlockSpinner, BlockAxe, BlockLimbo] }) {
+export default function Level({
+  count = 5,
+  types = [BlockSpinner, BlockAxe, BlockLimbo],
+}) {
   // const seed = useMemo(() => Math.random(), [count, types]);
   // const [seed, setSeed] = useState(() => Math.random());
 
@@ -303,7 +312,7 @@ export default function Level({ count = 5, types = [BlockSpinner, BlockAxe, Bloc
   //   return generated;
   // });
 
-  console.log(blocks);
+  // console.log(blocks);
 
   return (
     <>
