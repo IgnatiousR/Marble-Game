@@ -2,7 +2,8 @@ import { useRapier, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import type { Vec3 } from "./types";
 import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 
 type PlayerProps = {
   position?: Vec3;
@@ -12,6 +13,9 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
   const [subscribeKeys, getKeys] = useKeyboardControls();
   const { rapier, world } = useRapier();
   const rapierWorld = world;
+
+  const [smoothedCameraPosition] = useState(() => new THREE.Vector3(10, 10, 10));
+  const [smoothedCameraTarget] = useState(() => new THREE.Vector3());
 
   const jump = () => {
     console.log("Yes, jump!");
@@ -27,10 +31,8 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
     const hit = rapierWorld.castRay(ray, maxToi, solid);
 
     // console.log(hit);
-    if (!hit) return;
 
-    if (hit.timeOfImpact < 0.15)
-      rb.current?.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
+    if (hit && hit.timeOfImpact < 0.15) rb.current?.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
   };
 
   useEffect(() => {
@@ -48,7 +50,9 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
     };
   }, [subscribeKeys]);
 
-  useFrame((_state, delta) => {
+  useFrame((state, delta) => {
+    if (!rb.current) return;
+    // Controls
     const { forward, backward, leftward, rightward } = getKeys();
 
     const impulse = { x: 0, y: 0, z: 0 };
@@ -74,8 +78,27 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
       torque.z += torqueStrength;
     }
 
-    rb.current?.applyImpulse(impulse, true);
-    rb.current?.applyTorqueImpulse(torque, true);
+    rb.current.applyImpulse(impulse, true);
+    rb.current.applyTorqueImpulse(torque, true);
+
+    //Camera
+
+    const bodyPosition = rb.current.translation();
+
+    const cameraPosition = new THREE.Vector3();
+    cameraPosition.copy(bodyPosition);
+    cameraPosition.z += 2.25;
+    cameraPosition.y += 0.65;
+
+    const cameraTarget = new THREE.Vector3();
+    cameraTarget.copy(bodyPosition);
+    cameraTarget.y += 0.25;
+
+    smoothedCameraPosition.lerp(cameraPosition, 5 * delta);
+    smoothedCameraTarget.lerp(cameraTarget, 5 * delta);
+
+    state.camera.position.copy(smoothedCameraPosition);
+    state.camera.lookAt(smoothedCameraTarget);
   });
 
   return (
