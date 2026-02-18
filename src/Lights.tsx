@@ -7,8 +7,9 @@ const Lights = () => {
 
   useFrame((state) => {
     if (!light.current) return;
-    light.current.position.z = state.camera.position.z + 1;
-    light.current.target.position.z = state.camera.position.z;
+    light.current.position.z = state.camera.position.z + 1 - 4;
+    light.current.target.position.z = state.camera.position.z - 4;
+    light.current.target.updateMatrixWorld();
   });
 
   return (
