@@ -5,6 +5,7 @@ import "./index.css";
 import Experience from "./Experience";
 import { KeyboardControls } from "@react-three/drei";
 import * as THREE from "three";
+import { Interface } from "./Interface";
 
 const root = createRoot(document.querySelector("#root") as HTMLElement);
 
@@ -37,7 +38,7 @@ root.render(
       >
         <Experience />
       </Canvas>
-      {/* <Interface /> */}
+      <Interface />
     </KeyboardControls>
   </StrictMode>,
 );
