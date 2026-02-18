@@ -48,7 +48,7 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
     return () => {
       unsubscribeJump();
     };
-  }, [subscribeKeys]);
+  });
 
   useFrame((state, delta) => {
     if (!rb.current) return;
