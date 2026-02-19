@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useKeyboardControls } from "@react-three/drei";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { useGame } from "./stores/useGame";
 
 type PlayerProps = {
   position?: Vec3;
@@ -16,6 +17,8 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
 
   const [smoothedCameraPosition] = useState(() => new THREE.Vector3(10, 10, 10));
   const [smoothedCameraTarget] = useState(() => new THREE.Vector3());
+
+  const start = useGame((state) => state.start);
 
   const jump = () => {
     console.log("Yes, jump!");
@@ -45,8 +48,13 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
       },
     );
 
+    const unsubscribeAny = subscribeKeys(() => {
+      start();
+    });
+
     return () => {
       unsubscribeJump();
+      unsubscribeAny();
     };
   });
 
