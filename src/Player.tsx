@@ -9,16 +9,22 @@ import { useGame } from "./stores/useGame";
 type PlayerProps = {
   position?: Vec3;
 };
+
 export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
   const rb = useRef<RapierRigidBody | null>(null);
   const [subscribeKeys, getKeys] = useKeyboardControls();
   const { rapier, world } = useRapier();
   const rapierWorld = world;
 
-  const [smoothedCameraPosition] = useState(() => new THREE.Vector3(10, 10, 10));
+  const [smoothedCameraPosition] = useState(
+    () => new THREE.Vector3(10, 10, 10),
+  );
   const [smoothedCameraTarget] = useState(() => new THREE.Vector3());
 
   const start = useGame((state) => state.start);
+  const end = useGame((state) => state.end);
+  const restart = useGame((state) => state.restart);
+  const blockCount = useGame((state) => state.blockCount);
 
   const jump = () => {
     console.log("Yes, jump!");
@@ -35,10 +41,25 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
 
     // console.log(hit);
 
-    if (hit && hit.timeOfImpact < 0.15) rb.current?.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
+    if (hit && hit.timeOfImpact < 0.15)
+      rb.current?.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
+  };
+
+  const reset = () => {
+    rb.current?.setTranslation({ x: 0, y: 1, z: 0 }, true);
+    rb.current?.setLinvel({ x: 0, y: 1, z: 0 }, true);
+    rb.current?.setAngvel({ x: 0, y: 1, z: 0 }, true);
   };
 
   useEffect(() => {
+    const unsubscribeReset = useGame.subscribe(
+      (state) => state.phase,
+      (value) => {
+        // console.log(value);
+        if (value === "ready") reset();
+      },
+    );
+
     const unsubscribeJump = subscribeKeys(
       (state) => {
         return state.jump;
@@ -53,6 +74,7 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
     });
 
     return () => {
+      unsubscribeReset();
       unsubscribeJump();
       unsubscribeAny();
     };
@@ -107,6 +129,10 @@ export const Player = ({ position = [0, 1, 0] }: PlayerProps) => {
 
     state.camera.position.copy(smoothedCameraPosition);
     state.camera.lookAt(smoothedCameraTarget);
+
+    if (bodyPosition.z < -(blockCount * 4 + 2)) end();
+
+    if (bodyPosition.y < -4) restart();
   });
 
   return (
